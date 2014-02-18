@@ -3,24 +3,23 @@
         <title>
             Extjs Data Binding
         </title>
+        <link rel="stylesheet" href="http://localhost/ext421/resources/ext-theme-neptune/ext-theme-neptune-all.css">
+        <script src="http://localhost/ext421/ext-debug.js"></script>
         <script>
-            Ext.require([
-                'Ext.grid.*',
-                'Ext.data.*',
-                'Ext.panel.*',
-                'Ext.layout.container.Border'
-            ]);
-
+           
             Ext.onReady(function(){
-                Ext.define('Book',{
-                    extend: 'Ext.data.Model',
+                var theStore = Ext.create('Ext.data.Store',{
+                    autoLoad: true,
                     proxy: {
                         type: 'ajax',
-                        reader: 'xml'
+                        url: 'sheldon.xml',
+                        reader: {
+                            type: 'xml',
+                            record: 'Item',
+                            totalProperty: 'total'
+                        }
                     },
                     fields: [
-                        // set up the fields mapping into the xml doc
-                        // The first needs mapping, the others are very basic
                         {name: 'Author', mapping: '@author.name'},
                         'Title',
                         'Manufacturer',
@@ -28,38 +27,19 @@
                         'DetailPageURL'
                     ]
                 });
-
-                // create the Data Store
-                var store = Ext.create('Ext.data.Store', {
-                    model: 'Book',
-                    proxy: {
-                        // load using HTTP
-                        type: 'ajax',
-                        url: 'sheldon.xml',
-                        // the return will be XML, so lets set up a reader
-                        reader: {
-                            type: 'xml',
-                            record: 'Item',
-                            totalProperty  : 'total'
-                        }
-                    }
-                });
-
-                // create the grid
-                var grid = Ext.create('Ext.grid.Panel', {
-                    store: store,
+                
+                
+                var gridPanel = Ext.create('Ext.grid.Panel',{
+                    store: theStore,
+                    height: 250,
                     columns: [
-                        {text: "Author", width: 120, dataIndex: 'Author', sortable: true},
-                        {text: "Title", flex: 1, dataIndex: 'Title', sortable: true},
-                        {text: "Manufacturer", width: 125, dataIndex: 'Manufacturer', sortable: true},
-                        {text: "Product Group", width: 125, dataIndex: 'ProductGroup', sortable: true}
-                    ],
-                    forceFit: true,
-                    height:210,
-                    split: true,
-                    region: 'north'
+                        { text: 'Name', dataIndex: 'Author' },
+                        { text: 'Title', dataIndex: 'Title' },
+                        { text: 'Manufacturer', dataIndex: 'Manufacturer' }
+                    ]
                 });
-
+                
+                
                 // define a template to use for the detail view
                 var bookTplMarkup = [
                     'Title: <a href="{DetailPageURL}" target="_blank">{Title}</a><br/>',
@@ -68,33 +48,30 @@
                     'Product Group: {ProductGroup}<br/>'
                 ];
                 var bookTpl = Ext.create('Ext.Template', bookTplMarkup);
-
-                Ext.create('Ext.Panel', {
-                    renderTo: 'binding-example',
-                    frame: true,
-                    title: 'Book List',
-                    width: 580,
+                
+                var window = Ext.create('Ext.window.Window',{
+                    title: 'Widow',
+                    width: 800,
                     height: 400,
-                    layout: 'border',
-                    items: [
-                        grid, {
-                            id: 'detailPanel',
-                            region: 'center',
-                            bodyPadding: 7,
-                            bodyStyle: "background: #ffffff;",
-                            html: 'Please select a book to see additional details.'
-                    }]
+                    items: [ 
+                        gridPanel, 
+                        {
+                            id: 'theTpl',
+                            html: 'Please select the row',
+                            bodyPadding: 10,
+                            border: false
+                        }
+                    ]
                 });
-
-                // update panel body on selection change
-                grid.getSelectionModel().on('selectionchange', function(sm, selectedRecord) {
+                
+                gridPanel.getSelectionModel().on('selectionchange', function(sm, selectedRecord) {
                     if (selectedRecord.length) {
-                        var detailPanel = Ext.getCmp('detailPanel');
+                        var detailPanel = Ext.getCmp('theTpl');
                         detailPanel.update(bookTpl.apply(selectedRecord[0].data));
                     }
                 });
-
-                store.load();
+                
+                window.show();
             });
         </script>
     </head>
